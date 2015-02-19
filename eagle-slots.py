@@ -24,6 +24,7 @@ def main():
     # print("special_diams=", special_diams)
     # special_diams = (0.0394, 0.0394)
     special_tools = {}
+    slot_coords = []
 
     state = 'pretooldefs'
     for line in sys.stdin.readlines():
@@ -57,18 +58,22 @@ def main():
                 # print("toolnum=", toolnum)
             else:
                 if line[0] != 'X':
+                    # Non-coord line, such as M30 (end of program)
                     toolnum = None
                 elif toolnum in special_tools:
-                    # print("in special tool")
+                    # print("in special tool, saved_coord=", saved_coord)
                     if saved_coord is not None:
-                      sys.stdout.write("%sG85" % saved_coord)
-                      saved_coord = None
+                        print("{}G85{}".format(saved_coord, line))
+                        slot_coords.append((saved_coord, line))
+                        saved_coord = None
                     else:
-                      saved_coord = line
-                      continue
+                        saved_coord = line
+                    continue
         else:
             assert False, 'In unknown state %s' % state
         print(line)
+
+    # print("slot_coords=", slot_coords)
 
 if __name__ == "__main__":
     main()
