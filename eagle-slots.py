@@ -60,6 +60,8 @@ def main():
                 if line[0] != 'X':
                     # Non-coord line, such as M30 (end of program)
                     toolnum = None
+                elif 'G85' in line:
+                    pass # This line is already a G85 slot, so leave it alone.
                 elif toolnum in special_tools:
                     # print("in special tool, saved_coord=", saved_coord)
                     if saved_coord is not None:
