@@ -5,9 +5,24 @@ from __future__ import print_function
 import sys
 import re
 
+def parse_pair(s):
+    # Is there a - in there?  (- is interval marker)
+    matcher = re.match('(.*)-(.*)', s)
+    if matcher:
+        # Yes, so try to parse the left and the right part as floats.
+        lhs_s = matcher.group(1)
+        rhs_s = matcher.group(2)
+        # print('lhs_s=', lhs_s, 'rhs_s=', rhs_s)
+        lhs = float(lhs_s)
+        rhs = float(rhs_s)
+        # print('lhs=', lhs, 'rhs=', rhs)
+        return (lhs, rhs)
+    lhs = float(s)
+    return (lhs, lhs)
+
 def main():
-    # print "args=", sys.argv
-    # print "len=", len(sys.argv)
+    # print("args=", sys.argv)
+    # print("len=", len(sys.argv))
 
     # Get args without command name
     args = sys.argv[1:]
@@ -15,14 +30,13 @@ def main():
     if len(args) != 1:
         print("{}: convert certain holes in eagle-generated gerbers to slots".format(sys.argv[0]), file=sys.stderr)
         print("usage: {} diam".format(sys.argv[0]), file=sys.stderr)
-        print("usage: {} diam,diam".format(sys.argv[0]), file=sys.stderr)
+        print("usage: {} diam,diam,diam1-diam2".format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
-    diams = args[0].split(',')
-    assert 1 <= len(diams) <= 2
-    special_diams = (float(diams[0]), float(diams[len(diams)-1]))
-    # print("special_diams=", special_diams)
-    # special_diams = (0.0394, 0.0394)
+    diam_pairs_s = args[0].split(',')
+    assert len(diam_pairs_s) > 0
+    diam_pairs = tuple(parse_pair(s) for s in diam_pairs_s)
+    # print("diam_pairs=", diam_pairs)
     special_tools = {}
     slot_coords = []
 
@@ -47,7 +61,7 @@ def main():
                 # print("toolnum=", toolnum, "tooldiam=", tooldiam)
                 tooldiam = float(tooldiam)
                 # FIXME: Might need to tolerance this test for floating point error
-                if special_diams[0] <= tooldiam <= special_diams[1]:
+                if any((p[0] <= tooldiam <= p[1] for p in diam_pairs)):
                     # print("this tool is special")
                     special_tools[toolnum] = tooldiam
             elif line[0] == '%':
