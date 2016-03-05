@@ -29,16 +29,19 @@ def main():
     state = 'pretooldefs'
     for line in sys.stdin.readlines():
         line = line.strip()
-        assert len(line) > 0
+        # print("state=", state, "line=", line)
+        if line == "":
+            continue
         if state == 'pretooldefs':
-            if line[0] == '%':
+            if line[0] == '%' or line == "M48":
                 state = 'intooldefs'
+                # print("-> intooldefs")
         elif state == 'intooldefs':
             # print("line[0]=", line[0])
             if line[0] == 'T':
                 # matcher = re.match('T([0-9]+)C([0-9.]+)', line)
                 matcher = re.match('T([0-9]+)C([0-9.]+)', line)
-                assert matcher
+                assert matcher, "Tool line '%s' didn't match a format we can accept" % line
                 toolnum = matcher.group(1)
                 tooldiam = matcher.group(2)
                 # print("toolnum=", toolnum, "tooldiam=", tooldiam)
@@ -49,6 +52,7 @@ def main():
                     special_tools[toolnum] = tooldiam
             elif line[0] == '%':
                 state = 'aftertooldefs'
+                # print("-> aftertooldefs")
                 toolnum = None
                 saved_coord = None
                 # print("special_tools=", special_tools)
